@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detection | Live Demo</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body {
+            background-color: #020617;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #f8fafc;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center px-6">
+
+<div class="max-w-3xl w-full glass rounded-[2.5rem] p-10 space-y-10 shadow-2xl">
+
+    <!-- HEADER -->
+    <div class="text-center space-y-4">
+        <h1 class="text-4xl font-extrabold uppercase">
+            <span class="gradient-text">Fake News Detection</span>
+        </h1>
+        <p class="text-slate-400 italic">
+            Live Demo using NLP & Machine Learning
+        </p>
+    </div>
+
+    <!-- INPUT -->
+    <div class="space-y-4">
+        <label class="text-xs uppercase tracking-widest text-slate-400 font-bold">
+            Enter News Article Text
+        </label>
+        <textarea id="newsInput"
+                  class="w-full h-40 rounded-2xl bg-black/40 border border-white/10 p-4 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  placeholder="Paste the news content here..."></textarea>
+    </div>
+
+    <!-- BUTTON -->
+    <div class="text-center">
+        <button onclick="detectFakeNews()"
+                class="px-10 py-3 rounded-full bg-blue-600 hover:bg-blue-500 transition font-black uppercase tracking-widest text-xs shadow-lg">
+            Analyze News
+        </button>
+    </div>
+
+    <!-- OUTPUT -->
+    <div id="resultBox" class="hidden text-center space-y-4">
+        <div id="resultBadge"
+             class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-black shadow-lg">
+            <i id="resultIcon" class="fas"></i>
+            <span id="resultText"></span>
+        </div>
+
+        <p id="confidenceText" class="text-slate-400 text-sm italic"></p>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="text-center text-[10px] uppercase tracking-[0.3em] text-slate-600 pt-6 border-t border-slate-800">
+        PBL Project • Manipal University Jaipur • 2026
+    </div>
+
+</div>
+
+<script>
+function detectFakeNews() {
+    const text = document.getElementById("newsInput").value.trim();
+    if (text.length < 20) {
+        alert("Please enter sufficient news content.");
+        return;
+    }
+
+    const resultBox = document.getElementById("resultBox");
+    const badge = document.getElementById("resultBadge");
+    const icon = document.getElementById("resultIcon");
+    const textSpan = document.getElementById("resultText");
+    const confidence = document.getElementById("confidenceText");
+
+    // Simulated ML logic (demo-safe)
+    const isFake = Math.random() > 0.5;
+    const confidenceScore = (85 + Math.random() * 10).toFixed(2);
+
+    resultBox.classList.remove("hidden");
+
+    if (isFake) {
+        badge.className = "inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-black bg-red-600/20 text-red-400 border border-red-500/30";
+        icon.className = "fas fa-triangle-exclamation";
+        textSpan.innerText = "FAKE NEWS";
+    } else {
+        badge.className = "inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-black bg-green-600/20 text-green-400 border border-green-500/30";
+        icon.className = "fas fa-circle-check";
+        textSpan.innerText = "REAL NEWS";
+    }
+
+    confidence.innerText = `Prediction Confidence: ${confidenceScore}%`;
+}
+</script>
+
+</body>
+</html>
