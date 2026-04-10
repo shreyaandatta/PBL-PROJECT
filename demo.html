@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Fake News Engine</title>
-
 <style>
 body{background:#020617;color:white;font-family:sans-serif;padding:30px;}
 .card{background:#0f172a;padding:20px;border-radius:16px;margin-bottom:20px;}
@@ -47,7 +46,6 @@ canvas{width:100%;}
 <script src="model.js"></script>
 
 <script>
-
 function run(){
     let t=document.getElementById("input").value;
     let r=analyzeText(t);
@@ -60,7 +58,6 @@ function run(){
     <p>Score: ${r.score.toFixed(3)}</p>`;
 }
 
-// metrics
 document.getElementById("acc").innerText=(accuracy*100).toFixed(1)+"%";
 document.getElementById("loss").innerText=loss.toFixed(4);
 document.getElementById("size").innerText=dataset.length;
@@ -70,9 +67,7 @@ document.getElementById("fp").innerText=FP;
 document.getElementById("tn").innerText=TN;
 document.getElementById("fn").innerText=FN;
 
-// graph
 const ctx=document.getElementById("graph").getContext("2d");
-
 ctx.beginPath();
 history.forEach((l,i)=>{
     let x=i*(300/history.length);
@@ -82,7 +77,6 @@ history.forEach((l,i)=>{
 });
 ctx.strokeStyle="#3b82f6";
 ctx.stroke();
-
 </script>
 
 </body>
