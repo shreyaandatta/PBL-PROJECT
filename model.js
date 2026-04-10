@@ -1,35 +1,52 @@
 // ==========================
-// LARGE DATASET (120+)
+// DATASET (REALISTIC)
 // ==========================
-const dataset = [];
-
-const realSamples = [
-"NASA confirms water ice on moon",
-"Scientists publish climate change report",
-"Government releases economic data",
-"University study shows new findings",
-"Researchers discover new protein structure"
+const realBase = [
+"iran israel ceasefire talks ongoing",
+"us government releases economic report",
+"united nations reports conflict escalation",
+"scientists publish new research findings",
+"official statement released by ministry",
+"global leaders meet for climate summit",
+"military operations reported in region",
+"foreign ministers discuss peace negotiations",
+"economic growth data released by government",
+"health officials report new study results"
 ];
 
-const fakeSamples = [
-"Aliens secretly contacted leaders",
-"Miracle cure doctors hate",
-"5G spreads virus",
-"Secret government mind control",
-"Shocking conspiracy revealed"
+const fakeBase = [
+"aliens secretly control world leaders",
+"miracle cure doctors hate this trick",
+"5g towers spreading virus conspiracy",
+"secret organization running the world",
+"shocking truth media hiding from you",
+"cure cancer instantly with one trick",
+"government hiding alien technology",
+"mind control signals through phones",
+"ancient aliens built modern cities",
+"doctors hate this miracle discovery"
 ];
 
 // expand dataset
-for(let i=0;i<25;i++){
-    realSamples.forEach(t=>dataset.push({text:t+" "+i,label:0}));
-    fakeSamples.forEach(t=>dataset.push({text:t+" "+i,label:1}));
+const dataset = [];
+for(let i=0;i<15;i++){
+    realBase.forEach(t=>dataset.push({text:t+" "+i,label:0}));
+    fakeBase.forEach(t=>dataset.push({text:t+" "+i,label:1}));
 }
 
 // ==========================
-// TOKENIZATION
+// TOKENIZATION + BIGRAM
 // ==========================
-function tokenize(t){
-    return t.toLowerCase().split(/\W+/).filter(w=>w.length>2);
+function tokenize(text){
+    return text.toLowerCase().split(/\W+/).filter(w=>w.length>2);
+}
+
+function generateBigrams(tokens){
+    let bigrams=[];
+    for(let i=0;i<tokens.length-1;i++){
+        bigrams.push(tokens[i]+"_"+tokens[i+1]);
+    }
+    return bigrams;
 }
 
 // ==========================
@@ -39,22 +56,36 @@ let vocab=[], idf=[];
 
 function buildVocab(){
     let set=new Set();
-    dataset.forEach(d=>tokenize(d.text).forEach(w=>set.add(w)));
+
+    dataset.forEach(d=>{
+        let tokens=tokenize(d.text);
+        let bigrams=generateBigrams(tokens);
+        [...tokens,...bigrams].forEach(w=>set.add(w));
+    });
+
     vocab=[...set];
 }
 
 function computeIDF(){
     idf=vocab.map(w=>{
-        let count=dataset.filter(d=>tokenize(d.text).includes(w)).length;
+        let count=dataset.filter(d=>{
+            let t=tokenize(d.text);
+            let b=generateBigrams(t);
+            return [...t,...b].includes(w);
+        }).length;
+
         return Math.log((dataset.length+1)/(count+1))+1;
     });
 }
 
 function vectorize(text){
-    let vec=new Array(vocab.length).fill(0);
     let tokens=tokenize(text);
+    let bigrams=generateBigrams(tokens);
+    let features=[...tokens,...bigrams];
 
-    tokens.forEach(w=>{
+    let vec=new Array(vocab.length).fill(0);
+
+    features.forEach(w=>{
         let i=vocab.indexOf(w);
         if(i!==-1) vec[i]++;
     });
@@ -64,53 +95,34 @@ function vectorize(text){
 }
 
 // ==========================
-// 2-LAYER NEURAL NETWORK
+// MODEL (LOGISTIC NN)
 // ==========================
-let W1=[], W2=[], b1=[], b2;
+let W=[], bias=0;
 
 function initModel(){
-    let input=vocab.length, hidden=16;
-
-    W1=Array.from({length:input},()=>Array.from({length:hidden},()=>Math.random()-0.5));
-    W2=Array.from({length:hidden},()=>Math.random()-0.5);
-
-    b1=new Array(hidden).fill(0);
-    b2=0;
+    W=new Array(vocab.length).fill(0).map(()=>Math.random()*0.1);
+    bias=Math.random()*0.1;
 }
 
-function relu(x){return Math.max(0,x);}
-function sigmoid(x){return 1/(1+Math.exp(-x));}
+function sigmoid(x){
+    return 1/(1+Math.exp(-x));
+}
 
-// forward
-function forward(x){
-    let h=[];
-
-    for(let j=0;j<W2.length;j++){
-        let sum=b1[j];
-        for(let i=0;i<x.length;i++){
-            sum+=x[i]*W1[i][j];
-        }
-        h.push(relu(sum));
+function predict(vec){
+    let sum=bias;
+    for(let i=0;i<vec.length;i++){
+        sum+=vec[i]*W[i];
     }
-
-    let out=b2;
-    for(let j=0;j<h.length;j++){
-        out+=h[j]*W2[j];
-    }
-
-    return sigmoid(out);
+    return sigmoid(sum);
 }
 
 // ==========================
-// TRAINING + METRICS
+// TRAINING
 // ==========================
-let accuracy=0, loss=0;
-let history=[];
-
+let accuracy=0, loss=0, history=[];
 let TP=0,FP=0,TN=0,FN=0;
 
-function train(epochs=30){
-
+function train(epochs=40){
     for(let e=0;e<epochs;e++){
         let correct=0,totalLoss=0;
 
@@ -118,17 +130,16 @@ function train(epochs=30){
             let x=vectorize(d.text);
             let y=d.label;
 
-            let yhat=forward(x);
+            let yhat=predict(x);
             let err=yhat-y;
 
-            totalLoss+=err*err;
-
-            // update W2
-            for(let j=0;j<W2.length;j++){
-                W2[j]-=0.05*err;
+            // gradient descent
+            for(let i=0;i<W.length;i++){
+                W[i]-=0.1*err*x[i];
             }
+            bias-=0.1*err;
 
-            b2-=0.05*err;
+            totalLoss+=err*err;
 
             if((yhat>0.5?1:0)===y) correct++;
         });
@@ -141,11 +152,14 @@ function train(epochs=30){
     computeConfusion();
 }
 
+// ==========================
+// CONFUSION MATRIX
+// ==========================
 function computeConfusion(){
     TP=FP=TN=FN=0;
 
     dataset.forEach(d=>{
-        let pred=forward(vectorize(d.text))>0.5?1:0;
+        let pred=predict(vectorize(d.text))>0.5?1:0;
 
         if(pred===1 && d.label===1) TP++;
         else if(pred===1 && d.label===0) FP++;
@@ -155,41 +169,36 @@ function computeConfusion(){
 }
 
 // ==========================
-// FUZZY LOGIC
-// ==========================
-function fuzzy(text,score){
-    if(text.length<20) score+=0.2;
-    if(/[!]{2,}/.test(text)) score+=0.2;
-    return score;
-}
-
-// ==========================
-// ANALYZE
+// ANALYZE (FINAL LOGIC)
 // ==========================
 function analyzeText(text){
 
-    const tokens = tokenize(text);
+    let tokens=tokenize(text);
 
-    // 🚨 NEW: UNKNOWN WORD DETECTION
-    let known = tokens.filter(w => vocab.includes(w));
-
-    if (tokens.length < 3 || known.length / tokens.length < 0.3) {
-        return {
-            verdict: "FAKE",
-            confidence: 95,
-            score: 1,
-            reason: "Text does not match learned linguistic patterns (out-of-vocabulary)"
-        };
-    }
-    if(text.split(" ").length<3){
+    if(tokens.length<3){
         return {verdict:"FAKE",confidence:95,score:1};
     }
 
-    let x=vectorize(text);
-    let s=forward(x);
-    s=fuzzy(text,s);
+    let known=tokens.filter(w=>vocab.includes(w));
+    let unknownRatio=1-(known.length/tokens.length);
 
-    let verdict=s>0.5?"FAKE":"REAL";
+    if(unknownRatio>0.8){
+        return {verdict:"FAKE",confidence:90,score:1};
+    }
+
+    let x=vectorize(text);
+    let s=predict(x);
+
+    // context boost (real news)
+    const newsWords=["war","government","official","report","talks","minister","conflict","ceasefire","economy"];
+    let newsScore=tokens.filter(w=>newsWords.includes(w)).length;
+
+    if(newsScore>=2) s-=0.15;
+
+    let verdict;
+    if(s>0.6) verdict="FAKE";
+    else if(s<0.4) verdict="REAL";
+    else verdict="UNCERTAIN";
 
     return {
         verdict,
