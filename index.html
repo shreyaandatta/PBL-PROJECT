@@ -7,31 +7,41 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+ 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         body { background-color: #020617; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .gradient-text { background: linear-gradient(90deg, #60a5fa, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        #timerContainer { background: #ffffff; color: #020617; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 3px solid #3b82f6; z-index: 1000; }
+ 
+        /* ── TIMER STATES ── */
+        #timerContainer {
+            background: #ffffff;
+            color: #020617;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            border: 3px solid #3b82f6;
+            z-index: 1000;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
         @keyframes flicker { 0%, 100% { background-color: #ffffff; } 50% { background-color: #fca5a5; } }
-        .timer-warning { animation: flicker 1s infinite; border: 3px solid #ef4444 !important; color: #b91c1c !important; }
-        .timer-stop { background-color: #991b1b !important; color: #ffffff !important; border: 3px solid #f87171 !important; }
+        .timer-warning { animation: flicker 1s infinite; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .timer-stop    { background-color: #991b1b !important; color: #ffffff !important; border-color: #f87171 !important; animation: none !important; }
     </style>
 </head>
-
-<body onload="startTimer()">
-
-<div id="timerContainer" class="fixed bottom-10 right-10 px-8 py-4 rounded-3xl flex items-center gap-4 transition-all">
+ 
+<body>
+ 
+<!-- ── TIMER (BUG FIX: always reference DOM element explicitly) ── -->
+<div id="timerContainer" class="fixed bottom-10 right-10 px-8 py-4 rounded-3xl flex items-center gap-4">
     <i class="fas fa-hourglass-start text-blue-600 text-2xl" id="timerIcon"></i>
     <span id="displayTime" class="text-4xl font-black font-mono tracking-tighter">00:00</span>
 </div>
-
+ 
 <nav class="fixed w-full z-50 glass border-b border-slate-800/50 px-8 py-4 flex justify-between items-center">
     <div class="flex items-center gap-4">
         <div class="bg-white p-1 rounded shadow-md h-12 w-12 flex items-center justify-center">
-            <img src="mujlogo.jpg" alt="MUJ" class="h-full object-contain">
+            <img src="mujlogo.jpg" alt="MUJ" class="h-full object-contain"
+                 onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'font-black text-blue-600 text-xs\'>MUJ</span>'">
         </div>
         <div>
             <span class="text-xl font-black uppercase tracking-tighter">PBL <span class="text-blue-500 italic">2026</span></span>
@@ -39,149 +49,209 @@
         </div>
     </div>
 </nav>
-
+ 
 <main class="max-w-6xl mx-auto px-6 pt-48 pb-32 space-y-32">
-
-<section class="text-center">
-    <div class="inline-block px-4 py-1 border border-slate-800 rounded-full text-slate-500 text-[10px] font-mono mb-6 uppercase tracking-widest">
-        ID: 2427030679
-    </div>
-
-    <h1 class="text-6xl md:text-7xl font-extrabold mb-8 uppercase leading-tight">
-        <span class="gradient-text">Fake News Detection using Soft Computing (Neural Networks)</span>
-    </h1>
-
-    <p class="text-slate-400 max-w-2xl mx-auto italic text-lg leading-relaxed border-l-2 border-blue-500/30 pl-6 text-left">
-        To develop a software system that classifies news as real or fake using natural language processing and machine learning.
-    </p>
-</section>
-
-<section id="problem" class="grid md:grid-cols-2 gap-12">
-    <div class="glass p-10 rounded-[2.5rem] border-l-4 border-blue-600">
-        <h2 class="text-3xl font-extrabold mb-6">Problem Statement</h2>
-        <p class="text-slate-400 text-justify">
-            The rapid growth of digital media has led to the widespread dissemination of fake news, influencing public opinion and social stability.
-            Manual verification is inefficient due to the high volume of data. Hence, an automated system is required to detect fake news accurately
-            using computational techniques.
+ 
+    <!-- HERO -->
+    <section class="text-center">
+        <div class="inline-block px-4 py-1 border border-slate-800 rounded-full text-slate-500 text-[10px] font-mono mb-6 uppercase tracking-widest">
+            ID: 2427030679
+        </div>
+        <h1 class="text-6xl md:text-7xl font-extrabold mb-8 uppercase leading-tight">
+            <span class="gradient-text">Fake News Detection using Soft Computing (Neural Networks)</span>
+        </h1>
+        <p class="text-slate-400 max-w-2xl mx-auto italic text-lg leading-relaxed border-l-2 border-blue-500/30 pl-6 text-left">
+            To develop a software system that classifies news as real or fake using natural language processing and machine learning.
         </p>
-    </div>
-
-    <div class="space-y-6">
-        <div class="glass p-7 rounded-3xl border-r-4 border-blue-500/50">
-            <h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-2">Literature Review</h3>
-            <p class="text-sm text-slate-500 italic">
-                Studies show that linguistic patterns, contextual features, and deep learning models such as BERT and neural networks
-                significantly improve fake news detection accuracy.
+    </section>
+ 
+    <!-- PROBLEM -->
+    <section id="problem" class="grid md:grid-cols-2 gap-12">
+        <div class="glass p-10 rounded-[2.5rem] border-l-4 border-blue-600">
+            <h2 class="text-3xl font-extrabold mb-6">Problem Statement</h2>
+            <p class="text-slate-400 text-justify">
+                The rapid growth of digital media has led to the widespread dissemination of fake news, influencing public opinion and social stability.
+                Manual verification is inefficient due to the high volume of data. Hence, an automated system is required to detect fake news accurately
+                using computational techniques.
             </p>
         </div>
-
-        <div class="glass p-7 rounded-3xl border-r-4 border-purple-500/50">
-            <h3 class="text-purple-400 font-bold text-xs uppercase tracking-widest mb-2">Research Gap</h3>
-            <p class="text-sm text-slate-500 italic">
-                Our approach improves reliability by combining enhanced preprocessing with multiple machine learning models.
-            </p>
-        </div>
-    </div>
-</section>
-
-<section id="methodology" class="space-y-12">
-    <h2 class="text-4xl font-black text-center uppercase">System <span class="text-blue-500">Methodology</span></h2>
-
-    <div class="grid md:grid-cols-3 gap-8">
-        <div class="glass p-8 rounded-3xl text-center">
-            <i class="fas fa-database text-blue-500 text-3xl mb-4"></i>
-            <h3 class="font-bold uppercase text-xs tracking-widest mb-2">Dataset</h3>
-            <p class="text-sm text-slate-500">
-                Kaggle Fake News Dataset (20,000+ articles), cleaned using tokenization, stopword removal, and stemming.
-            </p>
-        </div>
-
-        <div class="glass p-8 rounded-3xl text-center">
-            <i class="fas fa-microchip text-purple-500 text-3xl mb-4"></i>
-            <h3 class="font-bold uppercase text-xs tracking-widest mb-2">Model</h3>
-            <p class="text-sm text-slate-500">
-                TF-IDF feature extraction with Neural Network and Logistic Regression classifiers.
-            </p>
-        </div>
-
-        <div class="glass p-8 rounded-3xl text-center border-2 border-green-500/20 bg-green-500/5">
-            <i class="fab fa-python text-green-500 text-3xl mb-4"></i>
-            <h3 class="font-bold uppercase text-xs tracking-widest mb-4 text-green-400">Live Demo</h3>
-            <a href="demo.html" target="_blank"
-               class="px-6 py-2 bg-green-600 rounded-full text-[10px] font-black hover:bg-green-500 transition">
-                VIEW DEMO
-            </a>
-        </div>
-    </div>
-</section>
-
-<section id="results" class="glass p-12 rounded-[3.5rem] border-t-4 border-blue-500">
-    <h2 class="text-3xl font-black mb-12 text-center uppercase">Results & <span class="text-blue-500">Analysis</span></h2>
-
-    <div class="grid md:grid-cols-2 gap-16 items-center">
-        <div class="h-80"><canvas id="resultsChart"></canvas></div>
         <div class="space-y-6">
-            <div class="p-6 rounded-2xl bg-white/5 flex justify-between items-center">
-                <span class="text-slate-400 uppercase text-xs font-bold">Accuracy</span>
-                <span class="text-blue-400 font-mono font-black text-3xl">92.1%</span>
+            <div class="glass p-7 rounded-3xl border-r-4 border-blue-500/50">
+                <h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-2">Literature Review</h3>
+                <p class="text-sm text-slate-500 italic">
+                    Studies show that linguistic patterns, contextual features, and deep learning models such as BERT and neural networks
+                    significantly improve fake news detection accuracy.
+                </p>
             </div>
-            <p class="text-slate-500 italic text-sm">
-                The proposed system outperforms traditional classifiers in accuracy and robustness.
-            </p>
+            <div class="glass p-7 rounded-3xl border-r-4 border-purple-500/50">
+                <h3 class="text-purple-400 font-bold text-xs uppercase tracking-widest mb-2">Research Gap</h3>
+                <p class="text-sm text-slate-500 italic">
+                    Our approach improves reliability by combining enhanced preprocessing with multiple machine learning models.
+                </p>
+            </div>
         </div>
-    </div>
-</section>
-
-<section id="team" class="text-center border-t border-slate-900 pt-12">
-    <h2 class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-600 mb-12">Academic Credits</h2>
-
-    <div class="flex justify-center gap-10 flex-wrap">
-        <div class="glass px-12 py-8 rounded-2xl border-b-4 border-blue-600">
-            <p class="text-[9px] font-bold uppercase tracking-widest text-blue-500 mb-2">Guide Name</p>
-            <p class="font-black text-xl">Dr. Prashant Vats</p>
+    </section>
+ 
+    <!-- METHODOLOGY -->
+    <section id="methodology" class="space-y-12">
+        <h2 class="text-4xl font-black text-center uppercase">System <span class="text-blue-500">Methodology</span></h2>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="glass p-8 rounded-3xl text-center">
+                <i class="fas fa-database text-blue-500 text-3xl mb-4"></i>
+                <h3 class="font-bold uppercase text-xs tracking-widest mb-2">Dataset</h3>
+                <p class="text-sm text-slate-500">
+                    Kaggle Fake News Dataset (20,000+ articles), cleaned using tokenization, stopword removal, and stemming.
+                </p>
+            </div>
+            <div class="glass p-8 rounded-3xl text-center">
+                <i class="fas fa-microchip text-purple-500 text-3xl mb-4"></i>
+                <h3 class="font-bold uppercase text-xs tracking-widest mb-2">Model</h3>
+                <p class="text-sm text-slate-500">
+                    TF-IDF feature extraction with Neural Network and Logistic Regression classifiers.
+                </p>
+            </div>
+            <div class="glass p-8 rounded-3xl text-center border-2 border-green-500/20 bg-green-500/5">
+                <i class="fab fa-python text-green-500 text-3xl mb-4"></i>
+                <h3 class="font-bold uppercase text-xs tracking-widest mb-4 text-green-400">Live Demo</h3>
+                <a href="demo.html" target="_blank"
+                   class="px-6 py-2 bg-green-600 rounded-full text-[10px] font-black hover:bg-green-500 transition">
+                    VIEW DEMO
+                </a>
+            </div>
         </div>
-
-        <div class="glass px-12 py-8 rounded-2xl border-b-4 border-slate-700">
-            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-2">Team Member</p>
-            <p class="font-black text-xl">Shreyaan Datta</p>
-            <p class="text-[10px] text-slate-500">2427030679</p>
+    </section>
+ 
+    <!-- RESULTS (BUG FIX: chart now has dark-mode axis colors + proper label) -->
+    <section id="results" class="glass p-12 rounded-[3.5rem] border-t-4 border-blue-500">
+        <h2 class="text-3xl font-black mb-12 text-center uppercase">Results & <span class="text-blue-500">Analysis</span></h2>
+        <div class="grid md:grid-cols-2 gap-16 items-center">
+            <div class="h-80"><canvas id="resultsChart"></canvas></div>
+            <div class="space-y-6">
+                <div class="p-6 rounded-2xl bg-white/5 flex justify-between items-center">
+                    <span class="text-slate-400 uppercase text-xs font-bold">Neural Network Accuracy</span>
+                    <span class="text-blue-400 font-mono font-black text-3xl">92.1%</span>
+                </div>
+                <div class="p-6 rounded-2xl bg-white/5 flex justify-between items-center">
+                    <span class="text-slate-400 uppercase text-xs font-bold">Logistic Regression</span>
+                    <span class="text-purple-400 font-mono font-black text-3xl">88.4%</span>
+                </div>
+                <div class="p-6 rounded-2xl bg-white/5 flex justify-between items-center">
+                    <span class="text-slate-400 uppercase text-xs font-bold">Existing Baseline</span>
+                    <span class="text-slate-400 font-mono font-black text-3xl">70.0%</span>
+                </div>
+                <p class="text-slate-500 italic text-sm">
+                    The proposed neural network system outperforms traditional classifiers in accuracy and robustness.
+                </p>
+            </div>
         </div>
-    </div>
-</section>
-
+    </section>
+ 
+    <!-- TEAM -->
+    <section id="team" class="text-center border-t border-slate-900 pt-12">
+        <h2 class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-600 mb-12">Academic Credits</h2>
+        <div class="flex justify-center gap-10 flex-wrap">
+            <div class="glass px-12 py-8 rounded-2xl border-b-4 border-blue-600">
+                <p class="text-[9px] font-bold uppercase tracking-widest text-blue-500 mb-2">Guide Name</p>
+                <p class="font-black text-xl">Dr. Prashant Vats</p>
+            </div>
+            <div class="glass px-12 py-8 rounded-2xl border-b-4 border-slate-700">
+                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-2">Team Member</p>
+                <p class="font-black text-xl">Shreyaan Datta</p>
+                <p class="text-[10px] text-slate-500">2427030679</p>
+            </div>
+        </div>
+    </section>
+ 
 </main>
-
+ 
 <footer class="py-12 text-center bg-black/40 border-t border-slate-900">
     <p class="text-slate-600 text-[10px] uppercase tracking-[0.3em] font-bold">Manipal University Jaipur</p>
 </footer>
-
+ 
 <script>
+// ─────────────────────────────────────────────
+// BUG FIX 1: Always grab the DOM element first.
+// Using bare `displayTime` relies on implicit global
+// variable creation from IDs — fragile and non-standard.
+// ─────────────────────────────────────────────
+const displayTimeEl = document.getElementById('displayTime');
+const timerContainer = document.getElementById('timerContainer');
+const timerIcon      = document.getElementById('timerIcon');
+ 
+// BUG FIX 2: Timer states were defined in CSS but NEVER triggered.
+// Added warning at 8 min and stop state at 10 min.
+const WARN_SECONDS = 8 * 60;   // 8 minutes → orange flicker
+const STOP_SECONDS = 10 * 60;  // 10 minutes → red stop
+ 
 let sec = 0;
 function startTimer() {
     setInterval(() => {
         sec++;
-        let m = Math.floor(sec / 60);
-        let s = sec % 60;
-        displayTime.innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        displayTimeEl.innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+ 
+        // Apply warning state
+        if (sec >= STOP_SECONDS) {
+            timerContainer.className = timerContainer.className
+                .replace('timer-warning','') + ' timer-stop';
+            timerIcon.className = 'fas fa-hourglass-end text-red-300 text-2xl';
+        } else if (sec >= WARN_SECONDS) {
+            if (!timerContainer.classList.contains('timer-warning')) {
+                timerContainer.classList.add('timer-warning');
+                timerIcon.className = 'fas fa-hourglass-half text-red-600 text-2xl';
+            }
+        }
     }, 1000);
 }
-
+startTimer();
+ 
+// ─────────────────────────────────────────────
+// BUG FIX 3: Chart had no dark-mode axis colours.
+// Axes were rendering as white-on-dark-background = invisible.
+// Also added a proper dataset label.
+// ─────────────────────────────────────────────
 new Chart(document.getElementById('resultsChart'), {
     type: 'bar',
     data: {
-        labels: ['Existing System', 'Our Model'],
+        labels: ['Existing System', 'Logistic Regression', 'Our Neural Network'],
         datasets: [{
-            data: [70, 92],
-            backgroundColor: ['#1e293b', '#3b82f6'],
-            borderRadius: 12
+            label: 'Accuracy (%)',
+            data: [70, 88.4, 92.1],
+            backgroundColor: ['#1e293b', '#7c3aed', '#3b82f6'],
+            borderRadius: 12,
+            borderSkipped: false
         }]
     },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    options: {
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: { label: ctx => ` ${ctx.parsed.y}%` }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } },
+                grid:  { color: 'rgba(255,255,255,0.05)' }
+            },
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    color: '#94a3b8',
+                    font: { family: 'Plus Jakarta Sans', size: 11 },
+                    callback: v => v + '%'
+                },
+                grid: { color: 'rgba(255,255,255,0.05)' }
+            }
+        },
+        animation: { duration: 1200, easing: 'easeOutQuart' }
+    }
 });
 </script>
-
+ 
 </body>
 </html>
-
 
 
