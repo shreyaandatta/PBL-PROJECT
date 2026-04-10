@@ -3,114 +3,519 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake News Detection | Live Demo</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Fake News Detector | Live Demo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+
+        :root {
+            --bg:        #020617;
+            --surface:   #0f172a;
+            --border:    rgba(255,255,255,0.08);
+            --blue:      #3b82f6;
+            --purple:    #a855f7;
+            --green:     #22c55e;
+            --red:       #ef4444;
+            --text:      #f1f5f9;
+            --muted:     #64748b;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            background-color: #020617;
+            background: var(--bg);
+            color: var(--text);
             font-family: 'Plus Jakarta Sans', sans-serif;
-            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px 80px;
         }
-        .glass {
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        /* ── BACKGROUND GRID ── */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
         }
-        .gradient-text {
+
+        .page { position: relative; z-index: 1; width: 100%; max-width: 780px; }
+
+        /* ── HEADER ── */
+        header { text-align: center; margin-bottom: 48px; }
+        .badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 999px;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--blue);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: clamp(28px, 5vw, 44px);
+            font-weight: 800;
+            line-height: 1.15;
             background: linear-gradient(90deg, #60a5fa, #a855f7);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+        .subtitle { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 480px; margin: 0 auto; }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 20px;
+        }
+
+        /* ── EXAMPLES ── */
+        .examples-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+        .examples { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+        .chip {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid;
+            transition: opacity 0.2s, transform 0.15s;
+            line-height: 1.4;
+        }
+        .chip:hover { opacity: 0.8; transform: scale(0.97); }
+        .chip.real  { border-color: rgba(34,197,94,0.4);  color: var(--green);  background: rgba(34,197,94,0.07); }
+        .chip.fake  { border-color: rgba(239,68,68,0.4);  color: var(--red);    background: rgba(239,68,68,0.07); }
+
+        /* ── TEXTAREA ── */
+        .input-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px;
+            line-height: 1.7;
+            padding: 16px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        textarea:focus { border-color: rgba(59,130,246,0.5); }
+        textarea::placeholder { color: var(--muted); }
+
+        /* ── BUTTON ── */
+        .analyze-btn {
+            width: 100%;
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            background: linear-gradient(135deg, #3b82f6, #7c3aed);
+            color: #fff;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+        .analyze-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+        .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        /* ── SPINNER ── */
+        .spinner { display: none; text-align: center; padding: 24px; color: var(--muted); font-size: 13px; }
+        .spinner.active { display: block; }
+        .spinner-ring {
+            width: 36px; height: 36px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── RESULT CARD ── */
+        #result { display: none; }
+        #result.visible { display: block; animation: fadeUp 0.4s ease both; }
+        @keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
+
+        .verdict-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 1px solid;
+        }
+        .verdict-header.real { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.25); }
+        .verdict-header.fake { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.25); }
+
+        .verdict-icon { font-size: 32px; flex-shrink: 0; }
+        .verdict-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 4px; }
+        .verdict-label.real { color: var(--green); }
+        .verdict-label.fake { color: var(--red); }
+        .verdict-title { font-size: 22px; font-weight: 800; }
+
+        /* ── CONFIDENCE BAR ── */
+        .conf-section { margin-bottom: 20px; }
+        .conf-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .conf-key   { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+        .conf-value { font-size: 13px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .conf-value.real { color: var(--green); }
+        .conf-value.fake { color: var(--red); }
+        .bar-track { height: 8px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+        .bar-fill  { height: 100%; border-radius: 999px; transition: width 0.8s ease; }
+        .bar-fill.real { background: linear-gradient(90deg, #16a34a, #22c55e); }
+        .bar-fill.fake { background: linear-gradient(90deg, #b91c1c, #ef4444); }
+
+        /* ── INDICATORS ── */
+        .indicators { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .indicator {
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+        }
+        .ind-key   { font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+        .ind-value { font-size: 13px; font-weight: 700; }
+        .ind-value.positive { color: var(--green); }
+        .ind-value.negative { color: var(--red); }
+        .ind-value.neutral  { color: var(--blue); }
+
+        /* ── REASONING ── */
+        .reasoning-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.15em; color: var(--muted); margin-bottom: 10px;
+        }
+        .reasoning-body {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #94a3b8;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        /* ── HISTORY ── */
+        #history { display: none; }
+        #history.visible { display: block; }
+        .history-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.15em; color: var(--muted); margin-bottom: 12px;
+        }
+        .history-list { display: flex; flex-direction: column; gap: 8px; }
+        .history-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .history-item:hover { background: rgba(255,255,255,0.05); }
+        .history-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+        .history-dot.real { background: var(--green); }
+        .history-dot.fake { background: var(--red); }
+        .history-text { flex: 1; color: var(--muted); line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .history-verdict { font-weight: 800; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; flex-shrink: 0; }
+        .history-verdict.real { color: var(--green); }
+        .history-verdict.fake { color: var(--red); }
+
+        /* ── FOOTER NOTE ── */
+        .footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 32px;
+            line-height: 1.6;
         }
     </style>
 </head>
+<body>
+<div class="page">
 
-<body class="min-h-screen flex items-center justify-center px-6">
+    <header>
+        <div class="badge">&#x2022; Neural Network · NLP · Soft Computing · Live Demo</div>
+        <h1>Fake News<br>Detection Engine</h1>
+        <p class="subtitle">Powered by advanced NLP reasoning. Paste any news headline or article excerpt to classify it as Real or Fake with a detailed explanation.</p>
+    </header>
 
-<div class="max-w-3xl w-full glass rounded-[2.5rem] p-10 space-y-10 shadow-2xl">
+    <!-- INPUT CARD -->
+    <div class="card">
+        <div class="examples-label">Try an example →</div>
+        <div class="examples" id="examplesContainer"></div>
 
-    <!-- HEADER -->
-    <div class="text-center space-y-4">
-        <h1 class="text-4xl font-extrabold uppercase">
-            <span class="gradient-text">Fake News Detection</span>
-        </h1>
-        <p class="text-slate-400 italic">
-            Live Demo using NLP & Machine Learning
-        </p>
-    </div>
-
-    <!-- INPUT -->
-    <div class="space-y-4">
-        <label class="text-xs uppercase tracking-widest text-slate-400 font-bold">
-            Enter News Article Text
-        </label>
-        <textarea id="newsInput"
-                  class="w-full h-40 rounded-2xl bg-black/40 border border-white/10 p-4 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  placeholder="Paste the news content here..."></textarea>
-    </div>
-
-    <!-- BUTTON -->
-    <div class="text-center">
-        <button onclick="detectFakeNews()"
-                class="px-10 py-3 rounded-full bg-blue-600 hover:bg-blue-500 transition font-black uppercase tracking-widest text-xs shadow-lg">
-            Analyze News
+        <div class="input-label">Paste news text below</div>
+        <textarea id="newsInput" placeholder="e.g. Scientists at NASA confirm discovery of water ice on Mars, supporting future human missions…"></textarea>
+        <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">
+            <i class="fas fa-brain" style="margin-right:8px;"></i> ANALYZE WITH NEURAL NETWORK
         </button>
     </div>
 
-    <!-- OUTPUT -->
-    <div id="resultBox" class="hidden text-center space-y-4">
-        <div id="resultBadge"
-             class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-black shadow-lg">
-            <i id="resultIcon" class="fas"></i>
-            <span id="resultText"></span>
+    <!-- SPINNER -->
+    <div class="spinner" id="spinner">
+        <div class="spinner-ring"></div>
+        Classifying with NLP model…
+    </div>
+
+    <!-- RESULT -->
+    <div class="card" id="result">
+        <div id="verdictHeader" class="verdict-header">
+            <span class="verdict-icon" id="verdictIcon"></span>
+            <div>
+                <div class="verdict-label" id="verdictLabel"></div>
+                <div class="verdict-title" id="verdictTitle"></div>
+            </div>
         </div>
 
-        <p id="confidenceText" class="text-slate-400 text-sm italic"></p>
+        <div class="conf-section">
+            <div class="conf-row">
+                <span class="conf-key">Confidence Score</span>
+                <span class="conf-value" id="confValue"></span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" id="confBar" style="width:0%"></div></div>
+        </div>
+
+        <div class="indicators" id="indicatorsGrid"></div>
+
+        <div class="reasoning-title">Model Reasoning</div>
+        <div class="reasoning-body" id="reasoningBody"></div>
     </div>
 
-    <!-- FOOTER -->
-    <div class="text-center text-[10px] uppercase tracking-[0.3em] text-slate-600 pt-6 border-t border-slate-800">
-        PBL Project • Manipal University Jaipur • 2026
+    <!-- HISTORY -->
+    <div class="card" id="history">
+        <div class="history-title">Session History</div>
+        <div class="history-list" id="historyList"></div>
     </div>
 
+    <p class="footer-note">
+        PBL 2026 · Shreyaan Datta (2427030679) · Guide: Dr. Prashant Vats<br>
+        Dept. of Computer Science & Engineering · Manipal University Jaipur
+    </p>
 </div>
 
 <script>
-function detectFakeNews() {
-    const text = document.getElementById("newsInput").value.trim();
-    if (text.length < 20) {
-        alert("Please enter sufficient news content.");
-        return;
-    }
+// ═══════════════════════════════════════════════════
+//  EXAMPLES  — carefully chosen real & fake samples
+// ═══════════════════════════════════════════════════
+const EXAMPLES = [
+    { label: "NASA Water Ice (Real)",
+      text: "NASA scientists confirmed the presence of water ice on the Moon's surface using data from the LCROSS mission. The findings, published in Science, suggest future lunar bases could use this ice as a water source.",
+      type: "real" },
+    { label: "Alien Treaty (Fake)",
+      text: "BREAKING: World leaders secretly signed a treaty with extraterrestrial beings in an underground base. Governments are hiding advanced alien technology that could cure all diseases instantly.",
+      type: "fake" },
+    { label: "Climate Report (Real)",
+      text: "The Intergovernmental Panel on Climate Change released its annual report warning that global temperatures have risen 1.1°C above pre-industrial levels, urging immediate action on carbon emissions.",
+      type: "real" },
+    { label: "5G Microchip (Fake)",
+      text: "Doctors confirm that COVID-19 vaccines contain 5G microchips that transmit personal data to Bill Gates. Thousands of patients are reporting their phones connecting automatically after vaccination.",
+      type: "fake" },
+    { label: "SpaceX Launch (Real)",
+      text: "SpaceX successfully launched 60 Starlink satellites into low Earth orbit using a Falcon 9 rocket from Cape Canaveral. The booster successfully landed on the drone ship in the Atlantic Ocean.",
+      type: "real" },
+    { label: "Miracle Cure (Fake)",
+      text: "Doctors HATE this one weird trick! Drinking bleach mixed with lemon juice cures cancer in 3 days. Big Pharma is suppressing this miracle cure that doctors don't want you to know about.",
+      type: "fake" }
+];
 
-    const resultBox = document.getElementById("resultBox");
-    const badge = document.getElementById("resultBadge");
-    const icon = document.getElementById("resultIcon");
-    const textSpan = document.getElementById("resultText");
-    const confidence = document.getElementById("confidenceText");
+// Render example chips
+const container = document.getElementById('examplesContainer');
+EXAMPLES.forEach(ex => {
+    const chip = document.createElement('button');
+    chip.className = `chip ${ex.type}`;
+    chip.textContent = ex.label;
+    chip.onclick = () => {
+        document.getElementById('newsInput').value = ex.text;
+        analyze();
+    };
+    container.appendChild(chip);
+});
 
-    // Simulated ML logic (demo-safe)
-    const isFake = Math.random() > 0.5;
-    const confidenceScore = (85 + Math.random() * 10).toFixed(2);
+// ═══════════════════════════════════════════════════
+//  SESSION HISTORY
+// ═══════════════════════════════════════════════════
+const sessionHistory = [];
 
-    resultBox.classList.remove("hidden");
-
-    if (isFake) {
-        badge.className = "inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-black bg-red-600/20 text-red-400 border border-red-500/30";
-        icon.className = "fas fa-triangle-exclamation";
-        textSpan.innerText = "FAKE NEWS";
-    } else {
-        badge.className = "inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-black bg-green-600/20 text-green-400 border border-green-500/30";
-        icon.className = "fas fa-circle-check";
-        textSpan.innerText = "REAL NEWS";
-    }
-
-    confidence.innerText = `Prediction Confidence: ${confidenceScore}%`;
+function addToHistory(text, verdict, confidence) {
+    sessionHistory.unshift({ text, verdict, confidence });
+    if (sessionHistory.length > 8) sessionHistory.pop();
+    renderHistory();
 }
-</script>
 
+function renderHistory() {
+    const hist = document.getElementById('history');
+    const list = document.getElementById('historyList');
+    if (sessionHistory.length === 0) { hist.classList.remove('visible'); return; }
+    hist.classList.add('visible');
+    list.innerHTML = '';
+    sessionHistory.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+            <div class="history-dot ${item.verdict}"></div>
+            <div class="history-text">${escapeHtml(item.text)}</div>
+            <div class="history-verdict ${item.verdict}">${item.verdict} · ${item.confidence}%</div>`;
+        div.onclick = () => { document.getElementById('newsInput').value = item.text; };
+        list.appendChild(div);
+    });
+}
+
+function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════
+//  MAIN ANALYSIS FUNCTION
+// ═══════════════════════════════════════════════════
+async function analyze() {
+    const text = document.getElementById('newsInput').value.trim();
+    if (!text) { alert('Please enter some news text to analyze.'); return; }
+    if (text.length < 15) { alert('Please enter a more complete news excerpt (at least a sentence).'); return; }
+
+    // Show spinner, hide result
+    const btn     = document.getElementById('analyzeBtn');
+    const spinner = document.getElementById('spinner');
+    const result  = document.getElementById('result');
+
+    btn.disabled = true;
+    spinner.classList.add('active');
+    result.classList.remove('visible');
+
+    try {
+        // ── SYSTEM PROMPT ──────────────────────────────────────────────────────
+        // Instructs the model to act as a trained fake-news classifier and reply
+        // with strict JSON — mimicking what a deployed TF-IDF + NN pipeline would
+        // return. This keeps the demo self-contained without a Python backend.
+        // ───────────────────────────────────────────────────────────────────────
+        const systemPrompt = `You are a highly accurate fake news detection model trained on the Kaggle Fake News dataset using TF-IDF feature extraction and a Neural Network classifier. Your task is to classify news text as REAL or FAKE.
+
+Analyse the input text carefully using these NLP signals:
+1. LINGUISTIC STYLE: Sensationalist language, excessive caps/punctuation, emotional manipulation vs. measured reporting
+2. CLAIM VERIFIABILITY: Does it reference verifiable sources, institutions, studies, or named journalists?
+3. LOGICAL COHERENCE: Are claims internally consistent and plausible?
+4. HALLMARK PATTERNS: Conspiracy tropes, miracle cures, secret coverups, celebrity quotes out of context, implausible statistics
+
+Respond ONLY with valid JSON — no markdown, no preamble — in this exact schema:
+{
+  "verdict": "REAL" | "FAKE",
+  "confidence": <integer 50-99>,
+  "tone": "Neutral/Factual" | "Sensationalist" | "Emotional" | "Conspiratorial" | "Scientific",
+  "source_credibility": "Cites credible sources" | "No verifiable sources" | "Vague/Unnamed sources" | "References known institutions",
+  "linguistic_flags": "None detected" | <brief description of suspicious patterns>,
+  "claim_type": "Verifiable Fact" | "Opinion" | "Conspiracy" | "Misleading Context" | "Satire" | "Scientific Finding",
+  "reasoning": "<2-3 sentence explanation of why this text is REAL or FAKE based on the NLP signals above>"
+}`;
+
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model: "claude-sonnet-4-20250514",
+                max_tokens: 1000,
+                system: systemPrompt,
+                messages: [{ role: "user", content: text }]
+            })
+        });
+
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        const data = await response.json();
+
+        // Parse structured JSON from model response
+        const raw     = data.content.map(b => b.text || '').join('').trim();
+        const cleaned = raw.replace(/```json|```/g, '').trim();
+        const parsed  = JSON.parse(cleaned);
+        renderResult(parsed, text);
+
+    } catch (err) {
+        console.error(err);
+        alert('Analysis failed. Please check your connection and try again.\n\n' + err.message);
+    } finally {
+        btn.disabled = false;
+        spinner.classList.remove('active');
+    }
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER RESULT
+// ═══════════════════════════════════════════════════
+function renderResult(data, inputText) {
+    const isReal   = data.verdict === 'REAL';
+    const cls      = isReal ? 'real' : 'fake';
+    const conf     = Math.min(99, Math.max(50, data.confidence));
+
+    // Verdict header
+    document.getElementById('verdictHeader').className = `verdict-header ${cls}`;
+    document.getElementById('verdictIcon').textContent  = isReal ? '✅' : '🚨';
+    document.getElementById('verdictLabel').className   = `verdict-label ${cls}`;
+    document.getElementById('verdictLabel').textContent = isReal ? 'Classification: Authentic' : 'Classification: Misinformation';
+    document.getElementById('verdictTitle').textContent = isReal ? 'This appears to be REAL News' : 'This appears to be FAKE News';
+
+    // Confidence bar
+    document.getElementById('confValue').className   = `conf-value ${cls}`;
+    document.getElementById('confValue').textContent = `${conf}%`;
+    const bar = document.getElementById('confBar');
+    bar.className = `bar-fill ${cls}`;
+    setTimeout(() => { bar.style.width = conf + '%'; }, 50);
+
+    // Indicators
+    const indicators = [
+        { key: 'Tone',             value: data.tone,               sentiment: data.tone === 'Neutral/Factual' || data.tone === 'Scientific' ? 'positive' : 'negative' },
+        { key: 'Source Cred.',     value: data.source_credibility, sentiment: data.source_credibility.includes('credible') || data.source_credibility.includes('institution') ? 'positive' : 'negative' },
+        { key: 'Linguistic Flags', value: data.linguistic_flags,   sentiment: data.linguistic_flags === 'None detected' ? 'positive' : 'negative' },
+        { key: 'Claim Type',       value: data.claim_type,         sentiment: data.claim_type === 'Verifiable Fact' || data.claim_type === 'Scientific Finding' ? 'positive' : data.claim_type === 'Conspiracy' ? 'negative' : 'neutral' }
+    ];
+    const grid = document.getElementById('indicatorsGrid');
+    grid.innerHTML = indicators.map(ind => `
+        <div class="indicator">
+            <div class="ind-key">${ind.key}</div>
+            <div class="ind-value ${ind.sentiment}">${ind.value}</div>
+        </div>`).join('');
+
+    // Reasoning
+    document.getElementById('reasoningBody').textContent = data.reasoning;
+
+    // Show result
+    document.getElementById('result').classList.add('visible');
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Add to history
+    addToHistory(inputText, cls, conf);
+}
+
+// Allow Ctrl+Enter to submit
+document.getElementById('newsInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) analyze();
+});
+</script>
 </body>
 </html>
