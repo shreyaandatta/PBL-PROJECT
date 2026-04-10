@@ -168,6 +168,19 @@ function fuzzy(text,score){
 // ==========================
 function analyzeText(text){
 
+    const tokens = tokenize(text);
+
+    // 🚨 NEW: UNKNOWN WORD DETECTION
+    let known = tokens.filter(w => vocab.includes(w));
+
+    if (tokens.length < 3 || known.length / tokens.length < 0.3) {
+        return {
+            verdict: "FAKE",
+            confidence: 95,
+            score: 1,
+            reason: "Text does not match learned linguistic patterns (out-of-vocabulary)"
+        };
+    }
     if(text.split(" ").length<3){
         return {verdict:"FAKE",confidence:95,score:1};
     }
