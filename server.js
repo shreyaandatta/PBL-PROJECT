@@ -13,7 +13,7 @@ app.post("/analyze", async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": "YOUR_ANTHROPIC_API_KEY",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify(req.body)
@@ -28,6 +28,9 @@ app.post("/analyze", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("✅ Server running on http://localhost:3000");
+app.get("/", (req, res) => {
+  res.send("API is running");
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
